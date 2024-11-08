@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import { httpServer } from './app';
 // import connectDB from "./db";
 import path from 'path';
-import { config } from './config';
+import config from './config';
 import logger from './logger';
 
 dotenv.config({ path: path.join(__dirname, '../.env') });

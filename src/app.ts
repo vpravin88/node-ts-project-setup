@@ -6,21 +6,25 @@ import { errorHandler } from './middlewares/error.middleware';
 import { ApiError } from './utils';
 import path from 'path';
 import dotenv from 'dotenv';
-import swaggerUI from 'swagger-ui-express';
-import swaggerSpecs from './swagger';
 import passport from 'passport';
 import { createServer } from 'http';
+import compression from 'compression';
+import mongoSanitize from 'express-mongo-sanitize';
 
 dotenv.config({
    path: path.join(__dirname, '../.env'),
 });
 
 const app = express();
+
 const httpServer = createServer(app);
 
 app.use(helmet());
-app.use(cors());
-app.use(express.json());
+
+app.use(express.json({ limit: '16kb' }));
+app.use(express.urlencoded({ extended: true, limit: '16kb' }));
+
+app.use(mongoSanitize());
 
 const limiter = rateLimit({
    windowMs: 15 * 60 * 1000,
@@ -37,15 +41,21 @@ const limiter = rateLimit({
 });
 
 app.use(limiter);
-app.use(express.json({ limit: '16kb' }));
-app.use(express.urlencoded({ extended: true, limit: '16kb' }));
+
 app.use(express.static('public'));
+
+// gzip compression
+app.use(compression());
+
+app.use(cors());
+app.options('*', cors());
+
 app.use(passport.initialize());
 app.use(passport.session());
 
 // app.use("/api/v1", router);
 
-app.use('api/v1/swagger', swaggerUI.serve, swaggerUI.setup(swaggerSpecs));
+// app.use('api/v1/swagger', swaggerUI.serve, swaggerUI.setup(swaggerSpecs));
 
 app.use(errorHandler);
 
